@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "chat-demo",
-    "slug": "chat-demo",
+    "slug": "test",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -25,6 +25,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "340ee2c7-b4d4-44c2-a425-d3f62c30f9c5"
+      }
+    },
+    "owner": "jpark42"
   }
 }
