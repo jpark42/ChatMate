@@ -1,5 +1,6 @@
 import {
   ImageBackground,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -44,6 +45,10 @@ const Start = ({ navigation }) => {
               color="#757083"
             />
             <TextInput
+              accessible={true}
+              accessibilityLabel="Name input"
+              accessibilityHint="Let's you enter your name that is going to be displayed in chat."
+              accessibilityRole="input"
               style={styles.nameInput}
               onChangeText={setName}
               value={name}
@@ -56,40 +61,85 @@ const Start = ({ navigation }) => {
 
             <View style={styles.bgColorWrapper}>
               <Pressable
+                accessible={true}
+                accessibilityLabel="black color"
+                accessibilityHint="Select to change your background color to black."
+                accessibilityRole="button"
                 style={[styles.color, black]}
                 onPress={() => {
                   setColor(black.backgroundColor);
                 }}
               >
-                <View style={styles.colorSelected} />
+                {/* apply different style based on whether the color was selected or not using conditional logic*/}
+                <View
+                  style={
+                    color === black.backgroundColor
+                      ? styles.colorSelected
+                      : styles.color
+                  }
+                />
               </Pressable>
               <Pressable
+                accessible={true}
+                accessibilityLabel="purple color"
+                accessibilityHint="Select to change your background color to purple."
+                accessibilityRole="button"
                 style={[styles.color, purple]}
                 onPress={() => {
                   setColor(purple.backgroundColor);
                 }}
               >
-                <View style={styles.colorSelected} />
+                <View
+                  style={
+                    color === purple.backgroundColor
+                      ? styles.colorSelected
+                      : styles.color
+                  }
+                />
               </Pressable>
               <Pressable
+                accessible={true}
+                accessibilityLabel="grey color"
+                accessibilityHint="Select to change your background color to grey."
+                accessibilityRole="button"
                 style={[styles.color, grey]}
                 onPress={() => {
                   setColor(grey.backgroundColor);
                 }}
               >
-                <View style={styles.colorSelected} />
+                <View
+                  style={
+                    color === grey.backgroundColor
+                      ? styles.colorSelected
+                      : styles.color
+                  }
+                />
               </Pressable>
               <Pressable
+                accessible={true}
+                accessibilityLabel="green color"
+                accessibilityHint="Select to change your background color to green."
+                accessibilityRole="button"
                 style={[styles.color, green]}
                 onPress={() => {
                   setColor(green.backgroundColor);
                 }}
               >
-                <View style={styles.colorSelected} />
+                <View
+                  style={
+                    color === green.backgroundColor
+                      ? styles.colorSelected
+                      : styles.color
+                  }
+                />
               </Pressable>
             </View>
           </View>
           <TouchableOpacity
+            accessible={true}
+            accessibilityLabel="Start chat"
+            accessibilityHint="Press to enter the chat screen."
+            accessibilityRole="button"
             style={styles.chatButton}
             onPress={() =>
               navigation.navigate("Chat", { name: name, color: color })
@@ -99,6 +149,10 @@ const Start = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       </ImageBackground>
+      {/* if user platform is Apple, then add component KeyboardAvodingView, otherwise input nothing*/}
+      {Platform.OS === "ios" ? (
+        <KeyboardAvoidingView behavior="padding" />
+      ) : null}
     </View>
   );
 };
@@ -144,7 +198,7 @@ const styles = StyleSheet.create({
   nameInput: {
     flex: 1,
     color: "#757083",
-    opacity: "50%",
+    opacity: 50,
     borderTopLeftRadius: 0,
     borderBottomLeftRadius: 0,
     borderTopRightRadius: 5,
@@ -174,7 +228,7 @@ const styles = StyleSheet.create({
   bgColorText: {
     fontSize: 16,
     fontWeight: "300",
-    opacity: "100%",
+    opacity: 100,
     color: "#757083",
   },
   bgColorWrapper: {
