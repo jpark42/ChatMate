@@ -25,9 +25,6 @@ const Start = ({ navigation }) => {
   const [name, setName] = useState("");
   const [color, setColor] = useState("");
 
-  //destructuring background colors
-  const { black, purple, grey, green } = backgroundColors;
-
   return (
     <View style={styles.container}>
       <ImageBackground
@@ -60,79 +57,29 @@ const Start = ({ navigation }) => {
             <Text style={styles.bgColorText}>Choose Background Color:</Text>
 
             <View style={styles.bgColorWrapper}>
-              <Pressable
-                accessible={true}
-                accessibilityLabel="black color"
-                accessibilityHint="Select to change your background color to black."
-                accessibilityRole="button"
-                style={[styles.color, black]}
-                onPress={() => {
-                  setColor(black.backgroundColor);
-                }}
-              >
-                {/* apply different style based on whether the color was selected or not using conditional logic*/}
-                <View
-                  style={
-                    color === black.backgroundColor
-                      ? styles.colorSelected
-                      : styles.color
-                  }
-                />
-              </Pressable>
-              <Pressable
-                accessible={true}
-                accessibilityLabel="purple color"
-                accessibilityHint="Select to change your background color to purple."
-                accessibilityRole="button"
-                style={[styles.color, purple]}
-                onPress={() => {
-                  setColor(purple.backgroundColor);
-                }}
-              >
-                <View
-                  style={
-                    color === purple.backgroundColor
-                      ? styles.colorSelected
-                      : styles.color
-                  }
-                />
-              </Pressable>
-              <Pressable
-                accessible={true}
-                accessibilityLabel="grey color"
-                accessibilityHint="Select to change your background color to grey."
-                accessibilityRole="button"
-                style={[styles.color, grey]}
-                onPress={() => {
-                  setColor(grey.backgroundColor);
-                }}
-              >
-                <View
-                  style={
-                    color === grey.backgroundColor
-                      ? styles.colorSelected
-                      : styles.color
-                  }
-                />
-              </Pressable>
-              <Pressable
-                accessible={true}
-                accessibilityLabel="green color"
-                accessibilityHint="Select to change your background color to green."
-                accessibilityRole="button"
-                style={[styles.color, green]}
-                onPress={() => {
-                  setColor(green.backgroundColor);
-                }}
-              >
-                <View
-                  style={
-                    color === green.backgroundColor
-                      ? styles.colorSelected
-                      : styles.color
-                  }
-                />
-              </Pressable>
+              {/* Object.entries() method used to convert backgroundColors object into an array, with a sub-array of key-value pairs.*/}
+              {/* .map() method used to create a new array where we looped over each sub-array and returns a new object
+               for each one. The new object contains the same color key-value pair, along with a click property set to
+               a function that changes the background color of the body to the corresponding color..*/}
+              {Object.entries(backgroundColors).map(([key, value]) => (
+                <Pressable
+                  accessible={true}
+                  accessibilityLabel={`${key} color`}
+                  accessibilityHint={`Select to change your background color to ${key}.`}
+                  accessibilityRole="button"
+                  key={key}
+                  style={[styles.color, value]}
+                  onPress={() => setColor(value.backgroundColor)}
+                >
+                  <View
+                    style={
+                      color === value.backgroundColor
+                        ? styles.colorSelected
+                        : styles.color
+                    }
+                  />
+                </Pressable>
+              ))}
             </View>
           </View>
           <TouchableOpacity
