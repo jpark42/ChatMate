@@ -1,4 +1,5 @@
 import {
+  Alert,
   ImageBackground,
   Platform,
   Pressable,
@@ -8,7 +9,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+// importing anonymous auth firebase functions
+import { getAuth, signInAnonymously } from "firebase/auth";
 
 import { SimpleLineIcons } from "@expo/vector-icons";
 
@@ -22,6 +26,35 @@ const backgroundColors = {
 
 // navigation prop is passed to every component included in Stack.Navigator from App.js
 const Start = ({ navigation }) => {
+  //initializing Firebase authentication handler (needed for signInAnonymously())
+  const auth = getAuth();
+
+  const signInUser = () => {
+    /* signInAnonymously() returns a promise
+    we get an information object (represented by result) 
+    as the user is signed in, the app navigates to Chat.js
+    we also pass result.user.uid (which is assigned to the route parameter userID) */
+    signInAnonymously(auth)
+      .then((result) => {
+        navigation.navigate("Chat", {
+          userID: result.user.uid,
+          name: name,
+          color: color,
+        });
+        Alert.alert("Signed in Successfully!");
+      })
+      .catch((error) => {
+        Alert.alert("Unable to sign in, try later again.");
+      });
+  };
+
+  useEffect(() => {
+    // setOptions function of the navigation prop to hide the navigation header
+    // [] - means it doesn't rely on any state changes of this component
+    // code inside useEffect will be called only once, right after the component is mounted
+    navigation.setOptions({ headerShown: false });
+  }, []);
+
   const [name, setName] = useState("");
   const [color, setColor] = useState("");
 
@@ -88,9 +121,7 @@ const Start = ({ navigation }) => {
             accessibilityHint="Press to enter the chat screen."
             accessibilityRole="button"
             style={styles.chatButton}
-            onPress={() =>
-              navigation.navigate("Chat", { name: name, color: color })
-            }
+            onPress={signInUser}
           >
             <Text style={styles.chatText}>Start Chatting</Text>
           </TouchableOpacity>
