@@ -5,7 +5,7 @@ import { GiftedChat, Bubble } from "react-native-gifted-chat";
 
 //route is a prop that is sent through navigation
 //This prop was set to all screen components listed under Stack.Navigator in App.js
-const Chat = ({ route, navigation }) => {
+const Chat = ({ route, navigation, db }) => {
   //initializing messages state so you can send, receive and display messages
   const [messages, setMessages] = useState([]);
 
