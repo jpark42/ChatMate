@@ -1,3 +1,6 @@
+import { LogBox } from "react-native";
+LogBox.ignoreLogs(["AsyncStorage has been extracted from"]);
+
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View } from "react-native";
 
