@@ -1,5 +1,5 @@
-import { LogBox } from "react-native";
-LogBox.ignoreLogs(["AsyncStorage has been extracted from"]);
+import { LogBox, Alert } from "react-native";
+import { useEffect } from "react";
 
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View } from "react-native";
@@ -9,11 +9,20 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import {
+  getFirestore,
+  disableNetwork,
+  enableNetwork,
+} from "firebase/firestore";
+
+// useNetInfo() keeps track of the network’s connectivity and updates in real time.
+import { useNetInfo } from "@react-native-community/netinfo";
 
 // import the screens
 import Start from "./components/Start";
 import Chat from "./components/Chat";
+
+LogBox.ignoreLogs(["AsyncStorage has been extracted from"]);
 
 // Creates Navigator and Screen, which are used to to create the Navigation Stack
 const Stack = createNativeStackNavigator();
@@ -37,6 +46,22 @@ const App = () => {
   // When using this in other components, you can read from, and write into, your database via your app
   const db = getFirestore(app);
 
+  //defining new state that represents online connectivity status
+  const connectionStatus = useNetInfo();
+
+  // connectionStatus.isConnected used as a dependency value of useEffect()
+  // If this value changes, the useEffect code will be re-executed
+  // Disable attempts to keep trying to reconnect to firebase if there is no connection
+  // Enable access to database on firebase if user is connected to internet
+  useEffect(() => {
+    if (connectionStatus.isConnected === false) {
+      Alert.alert("Connection lost!");
+      disableNetwork(db);
+    } else if (connectionStatus.isConnected === true) {
+      enableNetwork(db);
+    }
+  }, [connectionStatus.isConnected]);
+
   return (
     /*Reponsible for managing your app state and linking your top-level navigator to the app*/
     <NavigationContainer>
@@ -45,9 +70,17 @@ const App = () => {
         {/* Stack.Screen needs at least two this.props. 
         component: The component you want to display as the screen; 
         name: The handler that you’ll use to open or navigate to the screen */}
+        {/** Passing additional props to the ShoppingLists component. Can now access the db prop variable in Chat.js. */}
+        {/** Also passing boolean value of connectionStatus.isConnected as a prop so you can access isConnected in Chat.js */}
         <Stack.Screen name="Start" component={Start} />
         <Stack.Screen name="Chat">
-          {(props) => <Chat db={db} {...props} />}
+          {(props) => (
+            <Chat
+              isConnected={connectionStatus.isConnected}
+              db={db}
+              {...props}
+            />
+          )}
         </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
