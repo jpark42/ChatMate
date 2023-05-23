@@ -23,6 +23,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import CustomActions from "./CustomActions";
 
+//importing packages enabling Geolocation communication features
+import MapView from "react-native-maps";
+
 let unsubMessages;
 
 // route is a prop that is sent through navigation
@@ -173,8 +176,29 @@ const Chat = ({ route, navigation, db, isConnected }) => {
   };
 
   // renderCustomActions function is responsible for creating the circle button
+  //passing props to the CustomActions component
   const renderCustomActions = (props) => {
     return <CustomActions {...props} color={color} />;
+  };
+
+  /**renderCustomView checks if the currentMessage contains location data.
+   * If true, returns a MapView*/
+  const renderCustomView = (props) => {
+    const { currentMessage } = props;
+    if (currentMessage.location) {
+      return (
+        <MapView
+          style={{ width: 250, height: 200, borderRadius: 13, margin: 3 }}
+          region={{
+            latitude: currentMessage.location.latitude,
+            longitude: currentMessage.location.longitude,
+            latitudeDelta: 0.0922, // determine the size of the map
+            longitudeDelta: 0.0421, // determine the size of the map
+          }}
+        />
+      );
+    }
+    return null;
   };
 
   return (
@@ -185,6 +209,7 @@ const Chat = ({ route, navigation, db, isConnected }) => {
         renderSystemMessage={renderSystemMessage}
         renderBubble={renderBubble}
         renderActions={renderCustomActions}
+        renderCustomView={renderCustomView}
         renderInputToolbar={renderInputToolbar}
         user={{ _id: route.params.userID, username: route.params.name }}
       />
