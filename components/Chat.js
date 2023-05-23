@@ -1,7 +1,12 @@
 import { KeyboardAvoidingView, StyleSheet, Platform, View } from "react-native";
 import { useState, useEffect } from "react";
 
-import { GiftedChat, Bubble, SystemMessage } from "react-native-gifted-chat";
+import {
+  GiftedChat,
+  Bubble,
+  SystemMessage,
+  InputToolbar,
+} from "react-native-gifted-chat";
 
 // import firebase functions for quering data
 import {
@@ -16,10 +21,14 @@ import {
 // Importing storage for native apps
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import CustomActions from "./CustomActions";
+
+let unsubMessages;
+
 // route is a prop that is sent through navigation
 // This prop was set to all screen components listed under Stack.Navigator in App.js
 // Navigation prop is passed to every component included in the Stack.Navigator in App.js
-const Chat = ({ route, navigation, db }) => {
+const Chat = ({ route, navigation, db, isConnected }) => {
   //initializing messages state so you can send, receive and display messages
   const [messages, setMessages] = useState([]);
 
@@ -39,31 +48,53 @@ const Chat = ({ route, navigation, db }) => {
   then we set newMessages as a value for messages setMessages(newMessages);.*/
 
   useEffect(() => {
-    const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
-    const unsubMessages = onSnapshot(q, (documentsSnapshot) => {
-      let newMessages = [];
-      documentsSnapshot.forEach((doc) => {
-        newMessages.push({
-          id: doc.id,
-          ...doc.data(),
-          createdAt: new Date(doc.data().createdAt.toMillis()),
+    // If connected to internet, fetch data from firebase db. Else, call loadCacheMessages() which fetches cached data from AsyncStorage instead
+    if (isConnected === true) {
+      // unregister current onSnapshot() listener to avoid registering multiple listeners when
+      // useEffect code is re-executed.
+      if (unsubMessages) unsubMessages();
+      unsubMessages = null;
+
+      const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
+      unsubMessages = onSnapshot(q, (documentsSnapshot) => {
+        let newMessages = [];
+        documentsSnapshot.forEach((doc) => {
+          newMessages.push({
+            id: doc.id,
+            ...doc.data(),
+            createdAt: new Date(doc.data().createdAt.toMillis()),
+          });
         });
+        cacheMessages(newMessages);
+        setMessages(newMessages);
       });
-      cacheMessages(newMessages);
-      setMessages(newMessages);
-    });
+    } else {
+      loadCachedMessages();
+    }
 
     // code to execute when the component will be unmounted
+    // to clean the memory when listener is not needed any more
     return () => {
       if (unsubMessages) unsubMessages();
     };
-  }, []);
+    // useEffect() callback function can be called multiple times, as isConnected’s status can change at any time.
+  }, [isConnected]);
 
+  // async function that sets messages with cached value
+  // || [] will assign an empty array to cachedMessages if the messages_stored item hasn’t been set yet in AsyncStorage
+  const loadCachedMessages = async () => {
+    const cachedMessages =
+      (await AsyncStorage.getItem("messages_stored")) || [];
+    setMessages(JSON.parse(cachedMessages));
+  };
+
+  // cashing data whenever it is updated
+  // try-catch function - to prevent the app from crashing in case AsyncStorage fails to store the data.
   const cacheMessages = async (messagesToCache) => {
     try {
       await AsyncStorage.setItem(
         "messages_stored",
-        JSON.stringify(newMessages)
+        JSON.stringify(messagesToCache)
       );
     } catch (error) {
       console.log(error.message);
@@ -124,6 +155,14 @@ const Chat = ({ route, navigation, db }) => {
     );
   };
 
+  const renderInputToolbar = (props) => {
+    if (isConnected) {
+      return <InputToolbar {...props} />;
+    } else {
+      return null;
+    }
+  };
+
   const renderSystemMessage = (props) => {
     return (
       <SystemMessage
@@ -133,6 +172,11 @@ const Chat = ({ route, navigation, db }) => {
     );
   };
 
+  // renderCustomActions function is responsible for creating the circle button
+  const renderCustomActions = (props) => {
+    return <CustomActions {...props} color={color} />;
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: color }]}>
       <GiftedChat
@@ -140,6 +184,8 @@ const Chat = ({ route, navigation, db }) => {
         onSend={(messages) => onSend(messages)}
         renderSystemMessage={renderSystemMessage}
         renderBubble={renderBubble}
+        renderActions={renderCustomActions}
+        renderInputToolbar={renderInputToolbar}
         user={{ _id: route.params.userID, username: route.params.name }}
       />
       {/* if user platform is Andriod, then add component KeyboardAvodingView, otherwise input nothing*/}
