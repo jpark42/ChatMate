@@ -127,7 +127,14 @@ const CustomActions = ({
   };
 
   return (
-    <TouchableOpacity style={styles.container} onPress={onActionPress}>
+    <TouchableOpacity
+      accessible={true}
+      accessibilityLabel="Show options of actions"
+      accessibilityHint="Opens list of available actions"
+      accessibilityRole="button"
+      style={styles.container}
+      onPress={onActionPress}
+    >
       <View
         style={[
           styles.wrapper,
@@ -147,13 +154,15 @@ const styles = StyleSheet.create({
     height: 30,
     marginLeft: 12,
     marginBottom: 10,
+    justifyContent: "center",
+    alignContent: "center",
   },
   wrapper: {
     borderRadius: 50,
     borderWidth: 1,
     flex: 1,
     alignItems: "center",
-    justifyContent: "space-around",
+    justifyContent: "center",
   },
   iconText: {
     color: "#FFF",
