@@ -31,7 +31,7 @@ let unsubMessages;
 // route is a prop that is sent through navigation
 // This prop was set to all screen components listed under Stack.Navigator in App.js
 // Navigation prop is passed to every component included in the Stack.Navigator in App.js
-const Chat = ({ route, navigation, db, isConnected }) => {
+const Chat = ({ route, navigation, db, isConnected, storage }) => {
   //initializing messages state so you can send, receive and display messages
   const [messages, setMessages] = useState([]);
 
@@ -160,7 +160,16 @@ const Chat = ({ route, navigation, db, isConnected }) => {
 
   const renderInputToolbar = (props) => {
     if (isConnected) {
-      return <InputToolbar {...props} />;
+      return (
+        <InputToolbar
+          {...props}
+          containerStyle={{
+            backgroundColor: `${rightBobbleBackground(color)}`,
+            height: 70,
+            padding: 10,
+          }}
+        />
+      );
     } else {
       return null;
     }
@@ -178,7 +187,7 @@ const Chat = ({ route, navigation, db, isConnected }) => {
   // renderCustomActions function is responsible for creating the circle button
   //passing props to the CustomActions component
   const renderCustomActions = (props) => {
-    return <CustomActions {...props} color={color} />;
+    return <CustomActions storage={storage} {...props} color={color} />;
   };
 
   /**renderCustomView checks if the currentMessage contains location data.

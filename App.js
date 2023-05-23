@@ -15,6 +15,9 @@ import {
   enableNetwork,
 } from "firebase/firestore";
 
+// import function for initialisation of Firebase Storage (images)
+import { getStorage } from "firebase/storage";
+
 // useNetInfo() keeps track of the network’s connectivity and updates in real time.
 import { useNetInfo } from "@react-native-community/netinfo";
 
@@ -45,6 +48,9 @@ const App = () => {
   // Initialize Cloud Firestore and get a reference to the service
   // When using this in other components, you can read from, and write into, your database via your app
   const db = getFirestore(app);
+
+  // Initialize Firestore Storage and get a reference to the service
+  const storage = getStorage(app);
 
   //defining new state that represents online connectivity status
   const connectionStatus = useNetInfo();
@@ -78,6 +84,7 @@ const App = () => {
             <Chat
               isConnected={connectionStatus.isConnected}
               db={db}
+              storage={storage}
               {...props}
             />
           )}

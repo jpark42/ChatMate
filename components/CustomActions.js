@@ -5,7 +5,19 @@ import { useActionSheet } from "@expo/react-native-action-sheet";
 
 import * as Location from "expo-location";
 
-const CustomActions = ({ wrapperStyle, iconTextStyle, color, onSend }) => {
+// Import image picker package
+// * - imports everything which is exported in package
+import * as ImagePicker from "expo-image-picker";
+
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
+const CustomActions = ({
+  wrapperStyle,
+  iconTextStyle,
+  color,
+  onSend,
+  storage,
+}) => {
   //setting variable actionSheet value as useActionSheet() method, which returns a reference to Gifted Chat’s ActionSheet
   const actionSheet = useActionSheet();
 
@@ -21,6 +33,26 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, color, onSend }) => {
 
     // variable defines index of option 'Cancel'
     const cancelButtonIndex = options.length - 1;
+
+    actionSheet.showActionSheetWithOptions(
+      { options, cancelButtonIndex },
+      async (buttonIndex) => {
+        switch (buttonIndex) {
+          case 0:
+            pickImage();
+            console.log("User wants to pick an image");
+            return;
+          case 1:
+            takePhoto();
+            console.log("User wants to take a photo");
+            return;
+          case 2:
+            getLocation();
+            console.log("User wants to share location");
+          default:
+        }
+      }
+    );
 
     /**Function makes avaliable to send location
      * Location.requestForegroundPermissionsAsync() - request permission to access the device’s location
@@ -45,26 +77,53 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, color, onSend }) => {
         } else Alert.alert("Error occurred while fetching location");
       } else Alert.alert("Permissions haven't been granted.");
     };
+  };
 
-    actionSheet.showActionSheetWithOptions(
-      { options, cancelButtonIndex },
-      async (buttonIndex) => {
-        switch (buttonIndex) {
-          case 0:
-            pickImage();
-            console.log("User wants to pick an image");
-            return;
-          case 1:
-            takePhoto();
-            console.log("User wants to take a photo");
-            return;
-          case 2:
-            getLocation();
-            console.log("User wants to share location");
-          default:
-        }
-      }
-    );
+  // upload image to Firebase Storage and send to chat
+  const uploadAndSendImage = async (imageURI) => {
+    // to create unique reference string
+    const uniqueRefString = generateReference(imageURI);
+    // newUploadRef - creates reference that the file will be uploaded to
+    const newUploadRef = ref(storage, uniqueRefString);
+    const response = await fetch(imageURI);
+    // blob() - creates image of needed format
+    const blob = await response.blob();
+    // uploadBytes - uploads the file to Storage
+    uploadBytes(newUploadRef, blob)
+      .then(async (snapshot) => {
+        // Get the remote URL of the image you’ve just uploaded
+        const imageURL = await getDownloadURL(snapshot.ref);
+        onSend({ image: imageURL });
+      })
+      .catch((error) => console.log(error));
+  };
+
+  // Pick image from media library
+  const pickImage = async () => {
+    let permissions = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (permissions?.granted) {
+      let result = await ImagePicker.launchImageLibraryAsync();
+
+      if (!result.canceled) {
+        const imageURI = result.assets[0].uri;
+        await uploadAndSendImage(imageURI);
+      } else Alert.alert("Permissions haven't been granted.");
+    }
+  };
+
+  // take Photo
+  const takePhoto = async () => {
+    let permissions = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (permissions?.granted) {
+      let result = await ImagePicker.launchCameraAsync();
+
+      if (!result.canceled) {
+        const imageURI = result.assets[0].uri;
+        await uploadAndSendImage(imageURI);
+      } else Alert.alert("Permissions haven't been granted.");
+    }
   };
 
   return (
@@ -81,6 +140,7 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, color, onSend }) => {
     </TouchableOpacity>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     width: 30,
