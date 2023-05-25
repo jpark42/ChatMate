@@ -78,7 +78,6 @@ const Start = ({ navigation }) => {
               accessible={true}
               accessibilityLabel="Name input"
               accessibilityHint="Let's you enter your name that is going to be displayed in chat."
-              accessibilityRole="input"
               style={styles.nameInput}
               onChangeText={setName}
               value={name}

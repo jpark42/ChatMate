@@ -15,7 +15,6 @@ import {
   onSnapshot,
   query,
   orderBy,
-  where,
 } from "firebase/firestore";
 
 // Importing storage for native apps
@@ -148,7 +147,7 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
         {...props}
         wrapperStyle={{
           right: {
-            backgroundColor: `${rightBubbleColor(color)}`,
+            backgroundColor: rightBubbleColor(color),
           },
           left: {
             backgroundColor: "#FFF",
@@ -164,7 +163,7 @@ const Chat = ({ route, navigation, db, isConnected, storage }) => {
         <InputToolbar
           {...props}
           containerStyle={{
-            backgroundColor: `${rightBobbleBackground(color)}`,
+            backgroundColor: rightBubbleColor(color),
             height: 70,
             padding: 10,
           }}

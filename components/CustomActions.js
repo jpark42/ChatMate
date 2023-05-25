@@ -40,15 +40,12 @@ const CustomActions = ({
         switch (buttonIndex) {
           case 0:
             pickImage();
-            console.log("User wants to pick an image");
             return;
           case 1:
             takePhoto();
-            console.log("User wants to take a photo");
             return;
           case 2:
             getLocation();
-            console.log("User wants to share location");
           default:
         }
       }
@@ -101,24 +98,22 @@ const CustomActions = ({
   // Pick image from media library
   const pickImage = async () => {
     let permissions = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    let result = await ImagePicker.launchImageLibraryAsync();
 
-    if (permissions?.granted) {
-      let result = await ImagePicker.launchImageLibraryAsync();
-
-      if (!result.canceled) {
-        const imageURI = result.assets[0].uri;
-        await uploadAndSendImage(imageURI);
-      } else Alert.alert("Permissions haven't been granted.");
+    if (permissions?.granted && !result.canceled) {
+      const imageURI = result.assets[0].uri;
+      await uploadAndSendImage(imageURI);
+    } else {
+      Alert.alert("Permissions haven't been granted.");
     }
   };
 
   // take Photo
   const takePhoto = async () => {
     let permissions = await ImagePicker.requestCameraPermissionsAsync();
+    let result = await ImagePicker.launchCameraAsync();
 
     if (permissions?.granted) {
-      let result = await ImagePicker.launchCameraAsync();
-
       if (!result.canceled) {
         const imageURI = result.assets[0].uri;
         await uploadAndSendImage(imageURI);
