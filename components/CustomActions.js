@@ -17,6 +17,7 @@ const CustomActions = ({
   color,
   onSend,
   storage,
+  userID,
 }) => {
   //setting variable actionSheet value as useActionSheet() method, which returns a reference to Gifted Chat’s ActionSheet
   const actionSheet = useActionSheet();
@@ -33,23 +34,6 @@ const CustomActions = ({
 
     // variable defines index of option 'Cancel'
     const cancelButtonIndex = options.length - 1;
-
-    actionSheet.showActionSheetWithOptions(
-      { options, cancelButtonIndex },
-      async (buttonIndex) => {
-        switch (buttonIndex) {
-          case 0:
-            pickImage();
-            return;
-          case 1:
-            takePhoto();
-            return;
-          case 2:
-            getLocation();
-          default:
-        }
-      }
-    );
 
     /**Function makes avaliable to send location
      * Location.requestForegroundPermissionsAsync() - request permission to access the device’s location
@@ -74,51 +58,75 @@ const CustomActions = ({
         } else Alert.alert("Error occurred while fetching location");
       } else Alert.alert("Permissions haven't been granted.");
     };
-  };
 
-  // upload image to Firebase Storage and send to chat
-  const uploadAndSendImage = async (imageURI) => {
     // to create unique reference string
-    const uniqueRefString = generateReference(imageURI);
-    // newUploadRef - creates reference that the file will be uploaded to
-    const newUploadRef = ref(storage, uniqueRefString);
-    const response = await fetch(imageURI);
-    // blob() - creates image of needed format
-    const blob = await response.blob();
-    // uploadBytes - uploads the file to Storage
-    uploadBytes(newUploadRef, blob)
-      .then(async (snapshot) => {
-        // Get the remote URL of the image you’ve just uploaded
-        const imageURL = await getDownloadURL(snapshot.ref);
-        onSend({ image: imageURL });
-      })
-      .catch((error) => console.log(error));
-  };
+    const generateReference = (uri) => {
+      const timeStamp = new Date().getTime();
+      const imageName = uri.split("/")[uri.split("/").length - 1];
+      return `${userID}-${timeStamp}-${imageName}`;
+    };
 
-  // Pick image from media library
-  const pickImage = async () => {
-    let permissions = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    let result = await ImagePicker.launchImageLibraryAsync();
+    // upload image to Firebase Storage and send to chat
+    const uploadAndSendImage = async (imageURI) => {
+      // to create unique reference string
+      const uniqueRefString = generateReference(imageURI);
+      // newUploadRef - creates reference that the file will be uploaded to
+      const newUploadRef = ref(storage, uniqueRefString);
+      const response = await fetch(imageURI);
+      // blob() - creates image of needed format
+      const blob = await response.blob();
+      // uploadBytes - uploads the file to Storage
+      uploadBytes(newUploadRef, blob)
+        .then(async (snapshot) => {
+          // Get the remote URL of the image you’ve just uploaded
+          const imageURL = await getDownloadURL(snapshot.ref);
+          onSend({ image: imageURL });
+        })
+        .catch((error) => console.log(error));
+    };
 
-    if (permissions?.granted && !result.canceled) {
-      const imageURI = result.assets[0].uri;
-      await uploadAndSendImage(imageURI);
-    } else {
-      Alert.alert("Permissions haven't been granted.");
-    }
-  };
+    // Pick image from media library
+    const pickImage = async () => {
+      let permissions = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      let result = await ImagePicker.launchImageLibraryAsync();
 
-  // take Photo
-  const takePhoto = async () => {
-    let permissions = await ImagePicker.requestCameraPermissionsAsync();
-    let result = await ImagePicker.launchCameraAsync();
-
-    if (permissions?.granted) {
-      if (!result.canceled) {
+      if (permissions?.granted && !result.canceled) {
         const imageURI = result.assets[0].uri;
         await uploadAndSendImage(imageURI);
-      } else Alert.alert("Permissions haven't been granted.");
-    }
+      } else {
+        Alert.alert("Permissions haven't been granted.");
+      }
+    };
+
+    // take Photo
+    const takePhoto = async () => {
+      let permissions = await ImagePicker.requestCameraPermissionsAsync();
+      let result = await ImagePicker.launchCameraAsync();
+
+      if (permissions?.granted) {
+        if (!result.canceled) {
+          const imageURI = result.assets[0].uri;
+          await uploadAndSendImage(imageURI);
+        } else Alert.alert("Permissions haven't been granted.");
+      }
+    };
+
+    actionSheet.showActionSheetWithOptions(
+      { options, cancelButtonIndex },
+      async (buttonIndex) => {
+        switch (buttonIndex) {
+          case 0:
+            pickImage();
+            return;
+          case 1:
+            takePhoto();
+            return;
+          case 2:
+            getLocation();
+          default:
+        }
+      }
+    );
   };
 
   return (
